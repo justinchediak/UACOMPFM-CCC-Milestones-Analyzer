@@ -390,7 +390,7 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
             !r.defaults || !r.defaults[residentYear] || r.level > r.defaults[residentYear][1]
           );
         }
-        parsed.sort((a, b) => b.relevance - a.relevance);
+        parsed.sort((a: any, b: any) => b.relevance - a.relevance);
         setResults(parsed);
       } else setResults([]);
     } catch (err) {
