@@ -5,7 +5,7 @@ import { Search, Loader2, Mic, MicOff, BookOpen, ChevronDown, ChevronUp, Radio, 
 
 type ResidentYear = "R1" | "R2" | "R3";
 
-type DefaultRange = [number, number];
+type DefaultRange = number[]; // accept arrays like [1,2]
 
 type DefaultsByYear = Record<ResidentYear, DefaultRange>;
 
@@ -250,7 +250,10 @@ const MilestonesApp = () => {
 
   const getDefaultString = (defaults: DefaultsByYear) =>
     `R1: ${defaults.R1[0]}-${defaults.R1[1]}, R2: ${defaults.R2[0]}-${defaults.R2[1]}, R3: ${defaults.R3[0]}-${defaults.R3[1]}`;
-  const isWithinDefault = (
+  const isWithinDefault = (level: number, defaults: DefaultsByYear) => {
+   const range = defaults[residentYear];
+   return Array.isArray(range) && range.length >= 2 && level >= range[0] && level <= range[1];
+  };
   level: number,
   defaults: DefaultsByYear
 ) =>
