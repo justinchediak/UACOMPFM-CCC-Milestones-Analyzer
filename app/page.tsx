@@ -328,7 +328,7 @@ const MilestonesApp = () => {
           if (forAmbient || isAmbientListening) {
             setAmbientTranscript(prev => prev + finalText);
           } else {
-            setQuery(prev => prev + finalText);
+            setQuery(prev => String(prev) + finalText);
           }
         }
       };
