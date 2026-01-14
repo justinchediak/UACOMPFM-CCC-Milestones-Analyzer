@@ -11,7 +11,7 @@ type DefaultsByYear = Record<ResidentYear, DefaultRange>;
 
 const MilestonesApp = () => {
   const [query, setQuery] = React.useState('');
-  const [results, setResults] = React.useState(null);
+  const [results, setResults] = React.useState<any[]>([]);
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [isListening, setIsListening] = React.useState(false);
