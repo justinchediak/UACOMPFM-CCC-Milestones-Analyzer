@@ -343,8 +343,10 @@ const MilestonesApp = () => {
       
     } catch (err) {
       setMicStatus('error');
-      setMicMessage(`Failed: ${e.message}`);
+      const e = err as { message?: string };
+      setMicMessage(`Failed: ${e.message ?? 'Unknown error'}`);
     }
+
   };
 
   const stopListening = () => {
