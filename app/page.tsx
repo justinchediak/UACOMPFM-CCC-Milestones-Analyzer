@@ -357,7 +357,7 @@ const MilestonesApp = () => {
     setMicMessage('');
   };
 
-  const analyzeWithAI = async (desc, isAmbient = false) => {
+  const analyzeWithAI = async (desc: string, isAmbient: boolean = false) => {
     setIsAnalyzing(true);
     setError(null);
     const contextNote = isAmbient ? "This is a transcript of a resident staffing a patient with an attending." : "This is a description of clinical activities.";
