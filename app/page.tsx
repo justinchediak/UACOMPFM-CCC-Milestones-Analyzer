@@ -492,7 +492,7 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
             <div className="flex items-center gap-3">
               <button onClick={() => setDarkMode(!darkMode)} className={`p-2 rounded-lg ${darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{darkMode ? <Sun size={20} /> : <Moon size={20} />}</button>
               <User size={20} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
-              <select value={residentYear} onChange={(e) => setResidentYear(e.target.value)} className={`px-4 py-2 border rounded-lg font-medium ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}>
+              <select value={residentYear} onChange={(e) => setResidentYear(e.target.value as ResidentYear)} className={`px-4 py-2 border rounded-lg font-medium ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}>
                 <option value="R1">R1 - PGY1</option>
                 <option value="R2">R2 - PGY2</option>
                 <option value="R3">R3 - PGY3</option>
