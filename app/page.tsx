@@ -516,7 +516,7 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
               <div className="mb-6">
                 <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Describe clinical activities for {residentYear}:</label>
                 <div className="relative">
-                  <textarea value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Type here or use voice input..." className={`w-full p-4 pr-14 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'}`} rows="6" />
+                  <textarea value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Type here or use voice input..." className={`w-full p-4 pr-14 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'}`} rows={6} />
                   {micStatus !== 'unsupported' && (
                     <button onClick={() => isListening ? stopListening() : startListening(false)} className={`absolute right-3 top-3 p-2 rounded-lg ${isListening ? 'bg-red-500 text-white' : darkMode ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}>
                       {isListening ? <MicOff size={20} /> : <Mic size={20} />}
