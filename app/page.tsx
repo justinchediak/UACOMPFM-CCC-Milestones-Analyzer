@@ -250,7 +250,8 @@ const MilestonesApp = () => {
   const generateMilestonesText = () => milestonesData.map(m => `${m.name} (${m.category}): ${m.levels.map(l => `Level ${l.level}: ${l.text}${l.requirements ? ` [Req: ${l.requirements.join('; ')}]` : ''} [Defaults: R1:${l.defaults.R1[0]}-${l.defaults.R1[1]}, R2:${l.defaults.R2[0]}-${l.defaults.R2[1]}, R3:${l.defaults.R3[0]}-${l.defaults.R3[1]}]`).join(' | ')}`).join('\n\n');
 
   React.useEffect(() => {
-    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognitionAPI =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) {
       setMicStatus('unsupported');
       setMicMessage('Voice input not supported. Use Chrome, Edge, or Safari.');
@@ -261,7 +262,8 @@ const MilestonesApp = () => {
   }, []);
 
   const startListening = async (forAmbient = false) => {
-    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognitionAPI =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) {
       setMicStatus('unsupported');
       return;
