@@ -20,7 +20,7 @@ const MilestonesApp = () => {
   const [activeTab, setActiveTab] = React.useState('search');
   const [selectedCategory, setSelectedCategory] = React.useState('all');
   const [expandedMilestone, setExpandedMilestone] = React.useState(null);
-  const [residentYear, setResidentYear] = React.useState('R1');
+  const [residentYear, setResidentYear] = React.useState<ResidentYear>('R1');
   const [ambientTranscript, setAmbientTranscript] = React.useState('');
   const [includeDefaults, setIncludeDefaults] = React.useState(false);
   const [darkMode, setDarkMode] = React.useState(false);
