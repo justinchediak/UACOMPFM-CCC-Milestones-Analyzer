@@ -278,10 +278,13 @@ const MilestonesApp = () => {
       stream.getTracks().forEach(track => track.stop());
       
     } catch (err) {
-      setMicStatus('denied');
-      if (err.name === 'NotAllowedError') {
+  setMicStatus('denied');
+
+  const e = err as { name?: string };
+
+  if (e.name === 'NotAllowedError') {
         setMicMessage('Microphone denied. Click lock icon in address bar → Site settings → Microphone → Allow, then reload.');
-      } else if (err.name === 'NotFoundError') {
+      } else if (e.name === 'NotFoundError') {
         setMicMessage('No microphone detected.');
       } else {
         setMicMessage(`Microphone error: ${err.message}`);
