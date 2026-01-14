@@ -407,7 +407,9 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
     return type ? <span className={`px-2 py-1 text-xs rounded font-medium ${colors[type]}`}>{labels[type]}</span> : null;
   };
 
-  const categories = [...new Set(milestonesData.map(m => m.category))];
+  const categories = Array.from(
+   new Set(milestonesData.map((m: any) => m.category))
+  );
 
   const MicStatusBadge = () => {
     const statusConfig = {
