@@ -3,6 +3,12 @@
 import React from 'react';
 import { Search, Loader2, Mic, MicOff, BookOpen, ChevronDown, ChevronUp, Radio, Square, User, Moon, Sun } from 'lucide-react';
 
+type ResidentYear = "R1" | "R2" | "R3";
+
+type DefaultRange = [number, number];
+
+type DefaultsByYear = Record<ResidentYear, DefaultRange>;
+
 const MilestonesApp = () => {
   const [query, setQuery] = React.useState('');
   const [results, setResults] = React.useState(null);
@@ -233,8 +239,14 @@ const MilestonesApp = () => {
     }
   ];
 
-  const getDefaultString = (defaults) => `R1: ${defaults.R1[0]}-${defaults.R1[1]}, R2: ${defaults.R2[0]}-${defaults.R2[1]}, R3: ${defaults.R3[0]}-${defaults.R3[1]}`;
-  const isWithinDefault = (level, defaults) => level >= defaults[residentYear][0] && level <= defaults[residentYear][1];
+  const getDefaultString = (defaults: DefaultsByYear) =>
+    `R1: ${defaults.R1[0]}-${defaults.R1[1]}, R2: ${defaults.R2[0]}-${defaults.R2[1]}, R3: ${defaults.R3[0]}-${defaults.R3[1]}`;
+  const isWithinDefault = (
+  level: number,
+  defaults: DefaultsByYear
+) =>
+  level >= defaults[residentYear][0] &&
+  level <= defaults[residentYear][1];
   const generateMilestonesText = () => milestonesData.map(m => `${m.name} (${m.category}): ${m.levels.map(l => `Level ${l.level}: ${l.text}${l.requirements ? ` [Req: ${l.requirements.join('; ')}]` : ''} [Defaults: R1:${l.defaults.R1[0]}-${l.defaults.R1[1]}, R2:${l.defaults.R2[0]}-${l.defaults.R2[1]}, R3:${l.defaults.R3[0]}-${l.defaults.R3[1]}]`).join(' | ')}`).join('\n\n');
 
   React.useEffect(() => {
