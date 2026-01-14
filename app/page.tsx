@@ -401,7 +401,7 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
     }
   };
 
-  const Badge = ({ type }) => {
+  const Badge = ({ type }: { type?: 'pink' | 'yellow' | 'green' }) => {
     const colors = { pink: 'bg-pink-100 text-pink-800', yellow: 'bg-yellow-100 text-yellow-800', green: 'bg-green-100 text-green-800' };
     const labels = { pink: 'Required', yellow: 'Advanced', green: 'Document' };
     return type ? <span className={`px-2 py-1 text-xs rounded font-medium ${colors[type]}`}>{labels[type]}</span> : null;
