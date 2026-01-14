@@ -16,7 +16,7 @@ const MilestonesApp = () => {
   const [error, setError] = React.useState(null);
   const [isListening, setIsListening] = React.useState(false);
   const [isAmbientListening, setIsAmbientListening] = React.useState(false);
-  const [recognition, setRecognition] = React.useState(null);
+  const [recognition, setRecognition] = React.useState<any>(null);
   const [activeTab, setActiveTab] = React.useState('search');
   const [selectedCategory, setSelectedCategory] = React.useState('all');
   const [expandedMilestone, setExpandedMilestone] = React.useState(null);
