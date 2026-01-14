@@ -396,8 +396,6 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
     } catch (err) {
      const e = err as { message?: string };
      setError('Analysis failed: ' + (e.message ?? 'Unknown error'));
-    }
-
     } finally {
       setIsAnalyzing(false);
     }
