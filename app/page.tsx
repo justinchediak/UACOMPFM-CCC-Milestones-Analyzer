@@ -253,17 +253,12 @@ const MilestonesApp = () => {
   const isWithinDefault = (level: number, defaults: DefaultsByYear) => {
    const range = defaults[residentYear];
    return (
-    Array.isArray(range) && 
-    range.length >= 2 && 
-    level >= range[0] && 
+    Array.isArray(range) &&
+    range.length >= 2 &&
+    level >= range[0] &&
     level <= range[1]
+   );
   };
- );
-  level: number,
-  defaults: DefaultsByYear
-) =>
-  level >= defaults[residentYear][0] &&
-  level <= defaults[residentYear][1];
   const generateMilestonesText = () => milestonesData.map(m => `${m.name} (${m.category}): ${m.levels.map(l => `Level ${l.level}: ${l.text}${l.requirements ? ` [Req: ${l.requirements.join('; ')}]` : ''} [Defaults: R1:${l.defaults.R1[0]}-${l.defaults.R1[1]}, R2:${l.defaults.R2[0]}-${l.defaults.R2[1]}, R3:${l.defaults.R3[0]}-${l.defaults.R3[1]}]`).join(' | ')}`).join('\n\n');
 
   React.useEffect(() => {
