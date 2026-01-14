@@ -9,6 +9,15 @@ type DefaultRange = [number, number];
 
 type DefaultsByYear = Record<ResidentYear, DefaultRange>;
 
+type MicStatus =
+  | 'unknown'
+  | 'unsupported'
+  | 'ready'
+  | 'requesting'
+  | 'denied'
+  | 'listening'
+  | 'error';
+
 const MilestonesApp = () => {
   const [query, setQuery] = React.useState('');
   const [results, setResults] = React.useState<any[]>([]);
@@ -24,7 +33,7 @@ const MilestonesApp = () => {
   const [ambientTranscript, setAmbientTranscript] = React.useState('');
   const [includeDefaults, setIncludeDefaults] = React.useState(false);
   const [darkMode, setDarkMode] = React.useState(false);
-  const [micStatus, setMicStatus] = React.useState('unknown');
+  const [micStatus, setMicStatus] = React.useState<MicStatus>('unknown');
   const [micMessage, setMicMessage] = React.useState('');
 
   const milestonesData = [
