@@ -280,14 +280,14 @@ const MilestonesApp = () => {
     } catch (err) {
   setMicStatus('denied');
 
-  const e = err as { name?: string };
+  const e = err as { name?: string; message?: string };
 
   if (e.name === 'NotAllowedError') {
         setMicMessage('Microphone denied. Click lock icon in address bar → Site settings → Microphone → Allow, then reload.');
       } else if (e.name === 'NotFoundError') {
         setMicMessage('No microphone detected.');
       } else {
-        setMicMessage(`Microphone error: ${err.message}`);
+        setMicMessage(`Microphone error: ${e.message}`);
       }
       return;
     }
@@ -343,7 +343,7 @@ const MilestonesApp = () => {
       
     } catch (err) {
       setMicStatus('error');
-      setMicMessage(`Failed: ${err.message}`);
+      setMicMessage(`Failed: ${e.message}`);
     }
   };
 
@@ -390,7 +390,7 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
         setResults(parsed);
       } else setResults([]);
     } catch (err) {
-      setError('Analysis failed: ' + err.message);
+      setError('Analysis failed: ' + e.message);
     } finally {
       setIsAnalyzing(false);
     }
