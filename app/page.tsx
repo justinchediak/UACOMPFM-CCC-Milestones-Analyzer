@@ -321,7 +321,7 @@ const MilestonesApp = () => {
         }
       };
       
-      rec.onerror = (e) => {
+      rec.onerror = (e: any) => {
         setIsListening(false);
         setIsAmbientListening(false);
         if (e.error === 'not-allowed') {
