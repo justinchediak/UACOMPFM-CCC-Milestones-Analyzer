@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import React from 'react';
 import { Search, Loader2, Mic, MicOff, BookOpen, ChevronDown, ChevronUp, Radio, Square, User, Moon, Sun } from 'lucide-react';
@@ -384,7 +384,7 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
       const data = await response.json();
       const match = data.content[0].text.match(/\[[\s\S]*\]/);
       if (match) {
-        let parsed = JSON.parse(match[0]);
+        let parsed: any[] = JSON.parse(match[0]);
         if (!includeDefaults) {
           parsed = parsed.filter((r: any) =>
             !r.defaults || !r.defaults[residentYear] || r.level > r.defaults[residentYear][1]
