@@ -305,7 +305,7 @@ const MilestonesApp = () => {
         setMicMessage('Listening... speak now');
       };
       
-      rec.onresult = (e) => {
+      rec.onresult = (e: SpeechRecognitionEvent) => {
         let finalText = '';
         for (let i = e.resultIndex; i < e.results.length; i++) {
           if (e.results[i].isFinal) {
