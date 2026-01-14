@@ -386,7 +386,9 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
       if (match) {
         let parsed = JSON.parse(match[0]);
         if (!includeDefaults) {
-          parsed = parsed.filter(r => !r.defaults || !r.defaults[residentYear] || r.level > r.defaults[residentYear][1]);
+          parsed = parsed.filter((r: any) =>
+            !r.defaults || !r.defaults[residentYear] || r.level > r.defaults[residentYear][1]
+          );
         }
         parsed.sort((a, b) => b.relevance - a.relevance);
         setResults(parsed);
