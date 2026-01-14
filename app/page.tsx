@@ -461,7 +461,7 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
                   <div key={l.level} className={`border-l-4 pl-4 py-3 rounded-r-lg shadow-sm ${l.highlight === 'pink' ? 'border-pink-400' : l.highlight === 'yellow' ? 'border-yellow-400' : l.highlight === 'green' ? 'border-green-400' : 'border-blue-400'} ${darkMode ? 'bg-gray-700' : 'bg-white'}`}>
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <span className="font-bold text-blue-500 text-lg">Level {l.level}</span>
-                      {l.highlight && <Badge type={l.highlight} />}
+                      {l.highlight && <Badge type={l.highlight as 'pink' | 'yellow' | 'green'} />}
                       {isWithinDefault(l.level, l.defaults) && <span className={`px-2 py-1 text-xs rounded font-medium ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>{residentYear} Default</span>}
                     </div>
                     <p className={`text-sm mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{l.text}</p>
