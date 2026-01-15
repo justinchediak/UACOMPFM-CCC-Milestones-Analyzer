@@ -2941,16 +2941,17 @@ const MilestonesApp = () => {
     }
   ];
 
-  const getDefaultString = (defaults: DefaultsByYear) =>
-    `R1: ${defaults.R1[0]}-${defaults.R1[1]}, R2: ${defaults.R2[0]}-${defaults.R2[1]}, R3: ${defaults.R3[0]}-${defaults.R3[1]}`;
-  const isWithinDefault = (level: number, defaults: DefaultsByYear) => {
-   const range = defaults[residentYear];
-   return (
-    Array.isArray(range) &&
-    range.length >= 2 &&
-    level >= range[0] &&
-    level <= range[1]
-   );
+  const fmtRange = (r: any) =>
+    Array.isArray(r) && r.length >= 2 ? `${r[0]}-${r[1]}` : 'N/A';
+  
+  const getDefaultString = (defaults: any) =>
+    `R1: ${fmtRange(defaults?.R1)}, R2: ${fmtRange(defaults?.R2)}, R3: ${fmtRange(defaults?.R3)}`;
+
+  const isWithinDefault = (level: number, defaults: any) => {
+  const range = defaults?.[residentYear];
+  return Array.isArray(range) && range.length >= 2
+    ? level >= range[0] && level <= range[1]
+    : false;
   };
   const generateMilestonesText = () =>
     milestonesData
