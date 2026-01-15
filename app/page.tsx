@@ -3083,7 +3083,7 @@ const MilestonesApp = () => {
     const filterNote = includeDefaults ? `Include ALL matching milestones.` : `Only include milestones where level EXCEEDS ${residentYear} default upper bound.`;
     
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
