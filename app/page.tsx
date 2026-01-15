@@ -2941,9 +2941,7 @@ const MilestonesApp = () => {
             })
             .join(' | ')}`
       )
-      .join('
-
-');
+      .join('\n\n');
 
   React.useEffect(() => {
     const SpeechRecognitionAPI =
