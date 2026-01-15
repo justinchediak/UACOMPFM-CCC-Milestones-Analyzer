@@ -1144,7 +1144,7 @@ const MilestonesApp = () => {
             R3: [
               3.5,
               3.5
-            ]
+            ],
             defaultsNote: "R2: 3.0 if Patient Safety Conference done",
           }
         },
@@ -1176,9 +1176,8 @@ const MilestonesApp = () => {
             R3: [
               3.5,
               3.5
-            ]
+            ],
             defaultsNote: "R2: 3.0 if Patient Safety Conference done",
-            ]
           },
           highlight: "pink",
           requirements: [
@@ -1213,9 +1212,8 @@ const MilestonesApp = () => {
             R3: [
               3.5,
               3.5
-            ]
+            ],
             defaultsNote: "R2: 3.0 if Patient Safety Conference done",
-            ]
           },
           highlight: "pink",
           requirements: [
@@ -1250,9 +1248,8 @@ const MilestonesApp = () => {
             R3: [
               3.5,
               3.5
-            ]
+            ],
             defaultsNote: "R2: 3.0 if Patient Safety Conference done",
-            ]
           },
           highlight: "pink",
           requirements: [
@@ -1288,9 +1285,8 @@ const MilestonesApp = () => {
             R3: [
               3.5,
               3.5
-            ]
+            ],
             defaultsNote: "R2: 3.0 if Patient Safety Conference done",
-            ]
           }
         }
       ]
