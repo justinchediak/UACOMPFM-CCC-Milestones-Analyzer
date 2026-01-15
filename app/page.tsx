@@ -1138,13 +1138,14 @@ const MilestonesApp = () => {
               2.0
             ],
             R2: [
-              2.5
-              3.0 if Patient Safety Conference done
+              2.5,
+              3.0
             ],
             R3: [
               3.5,
               3.5
             ]
+            defaultsNote: "R2: 3.0 if Patient Safety Conference done",
           }
         },
         {
@@ -1169,12 +1170,14 @@ const MilestonesApp = () => {
               2.0
             ],
             R2: [
-              2.5
-              3.0 if Patient Safety Conference done
+              2.5,
+              3.0
             ],
             R3: [
               3.5,
               3.5
+            ]
+            defaultsNote: "R2: 3.0 if Patient Safety Conference done",
             ]
           },
           highlight: "pink",
@@ -1204,12 +1207,14 @@ const MilestonesApp = () => {
               2.0
             ],
             R2: [
-              2.5
-              3.0 if Patient Safety Conference done
+              2.5,
+              3.0
             ],
             R3: [
               3.5,
               3.5
+            ]
+            defaultsNote: "R2: 3.0 if Patient Safety Conference done",
             ]
           },
           highlight: "pink",
@@ -1239,12 +1244,14 @@ const MilestonesApp = () => {
               2.0
             ],
             R2: [
-              2.5
-              3.0 if Patient Safety Conference done
+              2.5,
+              3.0
             ],
             R3: [
               3.5,
               3.5
+            ]
+            defaultsNote: "R2: 3.0 if Patient Safety Conference done",
             ]
           },
           highlight: "pink",
@@ -1275,12 +1282,14 @@ const MilestonesApp = () => {
               2.0
             ],
             R2: [
-              2.5
-              3.0 if Patient Safety Conference done
+              2.5,
+              3.0
             ],
             R3: [
               3.5,
               3.5
+            ]
+            defaultsNote: "R2: 3.0 if Patient Safety Conference done",
             ]
           }
         }
