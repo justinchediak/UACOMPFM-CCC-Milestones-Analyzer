@@ -32,7 +32,7 @@ const MilestonesApp = () => {
   const [residentYear, setResidentYear] = React.useState<ResidentYear>('R1');
   const [ambientTranscript, setAmbientTranscript] = React.useState('');
   const [includeDefaults, setIncludeDefaults] = React.useState(false);
-  const [darkMode, setDarkMode] = React.useState(false);
+  const [darkMode, setDarkMode] = React.useState(true);
   const [micStatus, setMicStatus] = React.useState<MicStatus>('unknown');
   const [micMessage, setMicMessage] = React.useState('');
 
