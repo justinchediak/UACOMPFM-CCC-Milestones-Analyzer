@@ -565,7 +565,7 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
                               </div>
                             </div>
                             <div className={`my-3 p-3 border-l-4 rounded-r ${darkMode ? 'bg-gray-700 border-gray-500' : 'bg-white border-gray-300'}`}><p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{r.explanation}</p></div>
-                            {r.requirements?.length > 0 && <div className={`p-3 rounded-lg ${darkMode ? 'bg-orange-900/30' : 'bg-orange-50'}`}><p className={`font-semibold text-sm mb-1 ${darkMode ? 'text-orange-300' : 'text-orange-800'}`}>📋 Requirements:</p><ul className={`list-disc list-inside text-sm ${darkMode ? 'text-orange-400' : 'text-orange-700'}`}>{r.requirements.map((req, j) => <li key={j}>{req}</li>)}</ul></div>}
+                            {r.requirements?.length > 0 && <div className={`p-3 rounded-lg ${darkMode ? 'bg-orange-900/30' : 'bg-orange-50'}`}><p className={`font-semibold text-sm mb-1 ${darkMode ? 'text-orange-300' : 'text-orange-800'}`}>📋 Requirements:</p><ul className={`list-disc list-inside text-sm ${darkMode ? 'text-orange-400' : 'text-orange-700'}`}>{r.requirements.map((req: any, j: number) => <li key={j}>{req}</li>)}</ul></div>}
                           </div>
                         );
                       })}
