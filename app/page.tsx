@@ -1137,6 +1137,10 @@ const MilestonesApp = () => {
               1.5,
               2.0
             ],
+            R2: [
+              2.5
+              3.0 if Patient Safety Conference done
+            ],
             R3: [
               3.5,
               3.5
@@ -1163,6 +1167,10 @@ const MilestonesApp = () => {
             R1: [
               1.5,
               2.0
+            ],
+            R2: [
+              2.5
+              3.0 if Patient Safety Conference done
             ],
             R3: [
               3.5,
@@ -1195,6 +1203,10 @@ const MilestonesApp = () => {
               1.5,
               2.0
             ],
+            R2: [
+              2.5
+              3.0 if Patient Safety Conference done
+            ],
             R3: [
               3.5,
               3.5
@@ -1225,6 +1237,10 @@ const MilestonesApp = () => {
             R1: [
               1.5,
               2.0
+            ],
+            R2: [
+              2.5
+              3.0 if Patient Safety Conference done
             ],
             R3: [
               3.5,
@@ -1257,6 +1273,10 @@ const MilestonesApp = () => {
             R1: [
               1.5,
               2.0
+            ],
+            R2: [
+              2.5
+              3.0 if Patient Safety Conference done
             ],
             R3: [
               3.5,
