@@ -3101,8 +3101,24 @@ Return JSON array: [{"milestone":"FULL NAME with number prefix e.g. 'Systems-Bas
 ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
         })
       });
+      // If the API route failed, surface the actual message instead of crashing
+      if (!response.ok) {
+        const errText = await response.text().catch(() => '');
+        throw new Error(`API error ${response.status}: ${errText || response.statusText}`);
+      }
+      
       const data = await response.json();
-      const match = data.content[0].text.match(/\[[\s\S]*\]/);
+      
+      // Anthropic-style response: { content: [{ type: "text", text: "..." }, ...] }
+      const text = data?.content?.[0]?.text;
+      
+      if (typeof text !== 'string' || text.length === 0) {
+        // Helpful debugging: show what you actually got back
+        throw new Error(`Unexpected API response shape: ${JSON.stringify(data).slice(0, 500)}`);
+      }
+      
+      const match = text.match(/\[[\s\S]*\]/);
+
       if (match) {
         let parsed: any[] = JSON.parse(match[0]);
         if (!includeDefaults) {
