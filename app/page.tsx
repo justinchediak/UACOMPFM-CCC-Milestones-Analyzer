@@ -2963,7 +2963,7 @@ const MilestonesApp = () => {
                 .map((b: any) => `${b.id} ${b.text}`)
                 .join(' • ');
               const reqText = l.requirements ? ` [Req: ${l.requirements.join('; ')}]` : '';
-              return `Level ${l.level}: ${bulletText}${reqText} [Defaults: R1:${l.defaults.R1[0]}-${l.defaults.R1[1]}, R2:${l.defaults.R2[0]}-${l.defaults.R2[1]}, R3:${l.defaults.R3[0]}-${l.defaults.R3[1]}]`;
+              return `Level ${l.level}: ${bulletText}${reqText} [Defaults: ${getDefaultString(l.defaults)}]`;
             })
             .join(' | ')}`
       )
