@@ -3110,9 +3110,7 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
             const range = r?.defaults?.[residentYear];
             if (!Array.isArray(range) || range.length < 2) return true; // keep if no usable defaults
             return r.level > range[1];
-});
-
-          );
+          });
         }
         parsed.sort((a: any, b: any) => b.relevance - a.relevance);
         setResults(parsed);
