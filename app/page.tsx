@@ -3096,7 +3096,9 @@ ACTIVITIES: "${desc}"
 
 MILESTONES: ${generateMilestonesText()}
 
-Return JSON array: [{"milestone":"FULL NAME with number prefix e.g. 'Systems-Based Practice 2: System Navigation'","category":"","level":3,"explanation":"","requirements":[],"highlight":"pink/yellow/green/null","defaults":{"R1":[1.5,2.0],"R2":[2.5,3.0],"R3":[3.5,4.0]},"relevance":9,"advancementNote":"","isAdvancement":true}]
+Return JSON array: [{"milestone":"FULL NAME with number prefix e.g. 'Systems-Based Practice 2: System Navigation'","category":"","level":3,"sublevels":["3-1","3-2"],"explanation":"","requirements":[],"highlight":"pink/yellow/green/null","defaults":{"R1":[1.5,2.0],"R2":[2.5,3.0],"R3":[3.5,4.0]},"relevance":9,"advancementNote":"","isAdvancement":true}]
+
+IMPORTANT: For each match, specify which sublevel(s) within that level are addressed (e.g. 4-1, 4-2, 4-3). Use the sublevel IDs from the MILESTONES text. Include "sublevels" as an array of those IDs (e.g. ["4-1","4-2"]). In your explanation, explicitly mention which sublevel(s) you are addressing.
 
 ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
         })
@@ -3304,6 +3306,9 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
                               <div><h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>{r.milestone}</h3><p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{r.category}</p></div>
                               <div className="flex flex-wrap items-center gap-2">
                                 <span className={`px-3 py-1 text-white rounded-full font-bold text-sm ${isAbove ? 'bg-green-600' : 'bg-blue-600'}`}>Level {r.level}{isAbove ? ' ↑' : ''}</span>
+                                {r.sublevels?.length > 0 && (
+                                  <span className={`px-2 py-1 rounded text-xs font-medium ${darkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-800'}`}>Sublevels: {r.sublevels.join(', ')}</span>
+                                )}
                                 {r.highlight && <Badge type={r.highlight} />}
                               </div>
                             </div>
@@ -3360,7 +3365,12 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
                     <div key={i} className={`border-2 rounded-lg p-5 ${darkMode ? 'border-green-700 bg-green-900/20' : 'border-green-200 bg-green-50'}`}>
                       <div className="flex flex-col md:flex-row md:justify-between gap-3 mb-3">
                         <div><h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>{r.milestone}</h3><p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{r.category}</p></div>
-                        <span className="px-3 py-1 bg-green-600 text-white rounded-full font-bold text-sm self-start">Level {r.level}</span>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="px-3 py-1 bg-green-600 text-white rounded-full font-bold text-sm self-start">Level {r.level}</span>
+                          {r.sublevels?.length > 0 && (
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${darkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-800'}`}>Sublevels: {r.sublevels.join(', ')}</span>
+                          )}
+                        </div>
                       </div>
                       <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{r.explanation}</p>
                     </div>
