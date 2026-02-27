@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Search, Loader2, Mic, MicOff, BookOpen, ChevronDown, ChevronUp, Radio, Square, User, Moon, Sun } from 'lucide-react';
+import { Search, Loader2, Mic, MicOff, BookOpen, ChevronDown, ChevronUp, User, Moon, Sun } from 'lucide-react';
 
 type ResidentYear = "R1" | "R2" | "R3";
 
@@ -20,21 +20,26 @@ type MicStatus =
 
 const MilestonesApp = () => {
   const [query, setQuery] = React.useState<string>('');
+  const [feedbackGiven, setFeedbackGiven] = React.useState<string>('');
   const [results, setResults] = React.useState<any[]>([]);
+  const [futureAdvancementResults, setFutureAdvancementResults] = React.useState<any[]>([]);
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [isListening, setIsListening] = React.useState(false);
-  const [isAmbientListening, setIsAmbientListening] = React.useState(false);
   const [recognition, setRecognition] = React.useState<any>(null);
   const [activeTab, setActiveTab] = React.useState('search');
   const [selectedCategory, setSelectedCategory] = React.useState('all');
   const [expandedMilestone, setExpandedMilestone] = React.useState<string | null>(null);
   const [residentYear, setResidentYear] = React.useState<ResidentYear>('R1');
-  const [ambientTranscript, setAmbientTranscript] = React.useState('');
   const [includeDefaults, setIncludeDefaults] = React.useState(false);
   const [darkMode, setDarkMode] = React.useState(true);
   const [micStatus, setMicStatus] = React.useState<MicStatus>('unknown');
   const [micMessage, setMicMessage] = React.useState('');
+  const [futureAdvancementExpanded, setFutureAdvancementExpanded] = React.useState(false);
+  const [lastAnalysisHadFeedback, setLastAnalysisHadFeedback] = React.useState(false);
+  const [hasAnalyzed, setHasAnalyzed] = React.useState(false);
+  const [privacyWarning, setPrivacyWarning] = React.useState<string | null>(null);
+  const [detectedNames, setDetectedNames] = React.useState<string[]>([]);
 
   const milestonesData = [
     {
@@ -2981,7 +2986,7 @@ const MilestonesApp = () => {
     setMicMessage('Click microphone to start voice input');
   }, []);
 
-  const startListening = async (forAmbient = false) => {
+  const startListening = async () => {
     const SpeechRecognitionAPI =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) {
@@ -3020,7 +3025,6 @@ const MilestonesApp = () => {
       
       rec.onstart = () => {
         setIsListening(true);
-        if (forAmbient) setIsAmbientListening(true);
         setMicStatus('listening');
         setMicMessage('Listening... speak now');
       };
@@ -3033,17 +3037,12 @@ const MilestonesApp = () => {
           }
         }
         if (finalText) {
-          if (forAmbient || isAmbientListening) {
-            setAmbientTranscript(prev => prev + finalText);
-          } else {
-            setQuery((prev: string) => prev + finalText);
-          }
+          setQuery((prev: string) => prev + finalText);
         }
       };
       
       rec.onerror = (e: any) => {
         setIsListening(false);
-        setIsAmbientListening(false);
         if (e.error === 'not-allowed') {
           setMicStatus('denied');
           setMicMessage('Speech recognition denied. Check browser permissions.');
@@ -3055,7 +3054,7 @@ const MilestonesApp = () => {
       
       rec.onend = () => {
         setIsListening(false);
-        if (!isAmbientListening) setMicStatus('ready');
+        setMicStatus('ready');
       };
       
       setRecognition(rec);
@@ -3072,35 +3071,118 @@ const MilestonesApp = () => {
   const stopListening = () => {
     if (recognition) recognition.stop();
     setIsListening(false);
-    setIsAmbientListening(false);
     setMicStatus('ready');
     setMicMessage('');
   };
 
-  const analyzeWithAI = async (desc: string, isAmbient: boolean = false) => {
+  const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  const detectPotentialNames = (text: string): string[] => {
+    const blocked = new Set<string>([
+      'Patient', 'Resident', 'Attending', 'Clinic', 'Hospital', 'Medicine', 'Family',
+      'Program', 'ACGME', 'COPD', 'CHF', 'A1c', 'HbA1c', 'BMI', 'BP', 'CBC', 'CMP',
+      'CT', 'MRI', 'EKG', 'ECG', 'US', 'ED', 'ICU', 'FM', 'PGY', 'R1', 'R2', 'R3',
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
+      'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
+      'September', 'October', 'November', 'December'
+    ]);
+
+    const found = new Set<string>();
+    const fullNamePattern = /\b([A-Z][a-z]+(?:[-'][A-Z][a-z]+)?)\s+([A-Z][a-z]+(?:[-'][A-Z][a-z]+)?)\b/g;
+    const titledNamePattern = /\b(?:Mr|Mrs|Ms|Miss|Mx|Dr)\.?\s+([A-Z][a-z]+(?:[-'][A-Z][a-z]+)?)(?:\s+([A-Z][a-z]+(?:[-'][A-Z][a-z]+)?))?/g;
+
+    for (const match of text.matchAll(fullNamePattern)) {
+      const first = match[1];
+      const last = match[2];
+      if (!blocked.has(first) && !blocked.has(last)) found.add(`${first} ${last}`);
+    }
+
+    for (const match of text.matchAll(titledNamePattern)) {
+      const first = match[1];
+      const last = match[2];
+      if (first && !blocked.has(first)) found.add(first);
+      if (first && last && !blocked.has(last)) found.add(`${first} ${last}`);
+    }
+
+    return Array.from(found).slice(0, 12);
+  };
+
+  const redactDetectedNames = () => {
+    if (detectedNames.length === 0) return;
+
+    const sorted = [...detectedNames].sort((a, b) => b.length - a.length);
+    const redact = (source: string) =>
+      sorted.reduce((acc, name) => acc.replace(new RegExp(`\\b${escapeRegex(name)}\\b`, 'g'), '[REDACTED_NAME]'), source);
+
+    setQuery((prev) => redact(prev));
+    setFeedbackGiven((prev) => redact(prev));
+    setDetectedNames([]);
+    setPrivacyWarning(null);
+  };
+
+  const handleAnalyzeClick = () => {
+    const flagged = detectPotentialNames(`${query}\n${feedbackGiven}`);
+    if (flagged.length > 0) {
+      setDetectedNames(flagged);
+      setPrivacyWarning('Possible patient-identifying names detected. Remove or redact these before analyzing.');
+      return;
+    }
+
+    setDetectedNames([]);
+    setPrivacyWarning(null);
+    analyzeWithAI(query, feedbackGiven);
+  };
+
+  const analyzeWithAI = async (desc: string, feedback?: string) => {
+    const hasFeedback = typeof feedback === 'string' && feedback.trim().length > 0;
     setIsAnalyzing(true);
     setError(null);
-    const contextNote = isAmbient ? "This is a transcript of a resident staffing a patient with an attending." : "This is a description of clinical activities.";
+    setFutureAdvancementResults([]);
+    setFutureAdvancementExpanded(false);
+    setLastAnalysisHadFeedback(false);
+    setHasAnalyzed(false);
+    const contextNote = "This is a description of clinical activities.";
     const filterNote = includeDefaults ? `Include ALL matching milestones.` : `Only include milestones where level EXCEEDS ${residentYear} default upper bound.`;
-    
+
+    const feedbackBlock = hasFeedback ? `
+
+FEEDBACK GIVEN TO RESIDENT: "${feedback.trim()}"
+
+Based on this feedback, also identify FUTURE ADVANCEMENT OPPORTUNITIES: milestones the resident could work toward based on the feedback. Return a JSON object with two keys:
+- "traditional": the array of matches from activities (same format as before)
+- "futureAdvancement": array of milestone matches representing opportunities to work toward based on the feedback. Same structure: [{"milestone":"...","category":"","level":N,"sublevels":["N-1"],"explanation":"How this addresses the feedback","requirements":[],"highlight":"pink/yellow/green/null","defaults":{...},"relevance":N}]. Max 5 for futureAdvancement.` : '';
+
+    const sublevelInstruction = `IMPORTANT: For each match, specify which sublevel(s) within that level are addressed (e.g. 4-1, 4-2, 4-3). Use the sublevel IDs from the MILESTONES text. Include "sublevels" as an array of those IDs (e.g. ["4-1","4-2"]). In your explanation, explicitly mention which sublevel(s) you are addressing.`;
+
+    const responseFormat = hasFeedback
+      ? `Return a JSON object: { "traditional": [...], "futureAdvancement": [...] }
+
+For "traditional" and "futureAdvancement" arrays, each item: {"milestone":"FULL NAME with number prefix","category":"","level":N,"sublevels":["N-1","N-2"],"explanation":"","requirements":[],"highlight":"pink/yellow/green/null","defaults":{"R1":[1.5,2.0],"R2":[2.5,3.0],"R3":[3.5,4.0]},"relevance":N,"advancementNote":"","isAdvancement":true}
+
+${sublevelInstruction}
+
+If no above-default matches for activities: "traditional" can be []. If feedback yields no clear opportunities: "futureAdvancement" can be []. Max 8 for traditional, max 5 for futureAdvancement.`
+      : `Return JSON array: [{"milestone":"FULL NAME with number prefix e.g. 'Systems-Based Practice 2: System Navigation'","category":"","level":3,"sublevels":["3-1","3-2"],"explanation":"","requirements":[],"highlight":"pink/yellow/green/null","defaults":{"R1":[1.5,2.0],"R2":[2.5,3.0],"R3":[3.5,4.0]},"relevance":9,"advancementNote":"","isAdvancement":true}]
+
+${sublevelInstruction}
+
+${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.`;
+
     try {
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
-          max_tokens: 2000,
+          max_tokens: hasFeedback ? 3000 : 2000,
           messages: [{ role: 'user', content: `Analyze ${residentYear} FM resident activities against ACGME milestones. ${contextNote} ${filterNote}
 
 ACTIVITIES: "${desc}"
+${feedbackBlock}
 
 MILESTONES: ${generateMilestonesText()}
 
-Return JSON array: [{"milestone":"FULL NAME with number prefix e.g. 'Systems-Based Practice 2: System Navigation'","category":"","level":3,"sublevels":["3-1","3-2"],"explanation":"","requirements":[],"highlight":"pink/yellow/green/null","defaults":{"R1":[1.5,2.0],"R2":[2.5,3.0],"R3":[3.5,4.0]},"relevance":9,"advancementNote":"","isAdvancement":true}]
-
-IMPORTANT: For each match, specify which sublevel(s) within that level are addressed (e.g. 4-1, 4-2, 4-3). Use the sublevel IDs from the MILESTONES text. Include "sublevels" as an array of those IDs (e.g. ["4-1","4-2"]). In your explanation, explicitly mention which sublevel(s) you are addressing.
-
-${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
+${responseFormat}` }]
         })
       });
       // If the API route failed, surface the actual message instead of crashing
@@ -3119,23 +3201,58 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
         throw new Error(`Unexpected API response shape: ${JSON.stringify(data).slice(0, 500)}`);
       }
       
-      const match = text.match(/\[[\s\S]*\]/);
-
-      if (match) {
-        let parsed: any[] = JSON.parse(match[0]);
-        if (!includeDefaults) {
-          parsed = parsed.filter((r: any) => {
-            const range = r?.defaults?.[residentYear];
-            if (!Array.isArray(range) || range.length < 2) return true; // keep if no usable defaults
-            return r.level > range[1];
-          });
+      if (hasFeedback) {
+        const jsonBlock = text.replace(/^[\s\S]*?```(?:json)?\s*/, '').replace(/\s*```[\s\S]*$/, '');
+        const objMatch = jsonBlock.match(/\{[\s\S]*\}/);
+        const objStr = objMatch?.[0];
+        if (objStr) {
+          try {
+            const parsedObj = JSON.parse(objStr);
+            let traditional: any[] = Array.isArray(parsedObj.traditional) ? parsedObj.traditional : [];
+            let futureAdv: any[] = Array.isArray(parsedObj.futureAdvancement) ? parsedObj.futureAdvancement : [];
+            if (!includeDefaults) {
+              traditional = traditional.filter((r: any) => {
+                const range = r?.defaults?.[residentYear];
+                if (!Array.isArray(range) || range.length < 2) return true;
+                return r.level > range[1];
+              });
+            }
+            traditional.sort((a: any, b: any) => (b.relevance ?? 0) - (a.relevance ?? 0));
+            futureAdv.sort((a: any, b: any) => (b.relevance ?? 0) - (a.relevance ?? 0));
+            setResults(traditional);
+            setFutureAdvancementResults(futureAdv);
+            setLastAnalysisHadFeedback(true);
+          } catch {
+            setResults([]);
+            setFutureAdvancementResults([]);
+            setLastAnalysisHadFeedback(true);
+          }
+        } else {
+          setResults([]);
+          setFutureAdvancementResults([]);
+          setLastAnalysisHadFeedback(true);
         }
-        parsed.sort((a: any, b: any) => b.relevance - a.relevance);
-        setResults(parsed);
-      } else setResults([]);
+      } else {
+        const match = text.match(/\[[\s\S]*\]/);
+        if (match) {
+          let parsed: any[] = JSON.parse(match[0]);
+          if (!includeDefaults) {
+            parsed = parsed.filter((r: any) => {
+              const range = r?.defaults?.[residentYear];
+              if (!Array.isArray(range) || range.length < 2) return true;
+              return r.level > range[1];
+            });
+          }
+          parsed.sort((a: any, b: any) => b.relevance - a.relevance);
+          setResults(parsed);
+        } else setResults([]);
+        setLastAnalysisHadFeedback(false);
+      }
+      setHasAnalyzed(true);
     } catch (err) {
      const e = err as { message?: string };
      setError('Analysis failed: ' + (e.message ?? 'Unknown error'));
+     setHasAnalyzed(false);
     } finally {
       setIsAnalyzing(false);
     }
@@ -3249,7 +3366,6 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
         <div className={`rounded-xl shadow-lg p-6 mb-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
           <div className={`flex gap-2 md:gap-4 mb-6 border-b overflow-x-auto pb-2 ${darkMode ? 'border-gray-700' : ''}`}>
             <button onClick={() => setActiveTab('search')} className={`pb-2 px-4 font-medium flex items-center gap-2 whitespace-nowrap ${activeTab === 'search' ? 'text-blue-500 border-b-2 border-blue-500' : darkMode ? 'text-gray-400' : 'text-gray-600'}`}><Search size={18} />Analyze</button>
-            <button onClick={() => setActiveTab('ambient')} className={`pb-2 px-4 font-medium flex items-center gap-2 whitespace-nowrap ${activeTab === 'ambient' ? 'text-blue-500 border-b-2 border-blue-500' : darkMode ? 'text-gray-400' : 'text-gray-600'}`}><Radio size={18} />Ambient Staffing</button>
             <button onClick={() => setActiveTab('browse')} className={`pb-2 px-4 font-medium flex items-center gap-2 whitespace-nowrap ${activeTab === 'browse' ? 'text-blue-500 border-b-2 border-blue-500' : darkMode ? 'text-gray-400' : 'text-gray-600'}`}><BookOpen size={18} />Browse All</button>
           </div>
 
@@ -3263,10 +3379,14 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
                 <div className="relative">
                   <textarea value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Type here or use voice input..." className={`w-full p-4 pr-14 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'}`} rows={6} />
                   {micStatus !== 'unsupported' && (
-                    <button onClick={() => isListening ? stopListening() : startListening(false)} className={`absolute right-3 top-3 p-2 rounded-lg ${isListening ? 'bg-red-500 text-white' : darkMode ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}>
+                    <button onClick={() => isListening ? stopListening() : startListening()} className={`absolute right-3 top-3 p-2 rounded-lg ${isListening ? 'bg-red-500 text-white' : darkMode ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}>
                       {isListening ? <MicOff size={20} /> : <Mic size={20} />}
                     </button>
                   )}
+                </div>
+                <div className="mt-4">
+                  <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Feedback given to resident: <span className="font-normal opacity-75">(optional)</span></label>
+                  <textarea value={feedbackGiven} onChange={(e) => setFeedbackGiven(e.target.value)} placeholder="e.g., Consider leading a quality improvement project..." className={`w-full p-3 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'}`} rows={3} />
                 </div>
                 <div className="mt-2 flex items-center justify-between flex-wrap gap-2">
                   <MicStatusBadge />
@@ -3281,21 +3401,43 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
                   <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Include matches within {residentYear} default range</span>
                 </div>
                 
-                <button onClick={() => analyzeWithAI(query, false)} disabled={isAnalyzing || !query.trim()} className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button onClick={handleAnalyzeClick} disabled={isAnalyzing || !query.trim()} className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
                   {isAnalyzing ? <><Loader2 size={20} className="animate-spin" />Analyzing...</> : <><Search size={20} />{includeDefaults ? 'Find All Matches' : 'Find Advancement Opportunities'}</>}
                 </button>
               </div>
+
+              {privacyWarning && (
+                <div className={`mb-6 p-4 rounded-lg border ${darkMode ? 'bg-amber-900/20 border-amber-700 text-amber-200' : 'bg-amber-50 border-amber-300 text-amber-900'}`}>
+                  <p className="font-semibold mb-2">Privacy check required</p>
+                  <p className="text-sm mb-2">{privacyWarning}</p>
+                  <details className="mb-2">
+                    <summary className={`text-xs cursor-pointer underline ${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
+                      Why was this flagged?
+                    </summary>
+                    <p className={`text-xs mt-2 ${darkMode ? 'text-amber-100' : 'text-amber-900'}`}>
+                      This check looks for name-like proper nouns (for example, first + last names or titled names like "Dr. Smith") to reduce accidental PHI exposure.
+                      Review and redact any real patient identifiers before analysis.
+                    </p>
+                  </details>
+                  <p className="text-xs mb-3">
+                    Flagged terms: {detectedNames.join(', ')}
+                  </p>
+                  <button onClick={redactDetectedNames} className={`px-4 py-2 rounded-lg text-sm font-medium ${darkMode ? 'bg-amber-700 hover:bg-amber-600 text-white' : 'bg-amber-200 hover:bg-amber-300 text-amber-900'}`}>
+                    Auto-redact detected names
+                  </button>
+                </div>
+              )}
               
               {error && <div className={`mb-6 p-4 rounded-lg ${darkMode ? 'bg-red-900/30 text-red-300' : 'bg-red-50 text-red-800'}`}>{error}</div>}
               
-              {results !== null && (
+              {hasAnalyzed && (
                 <div className="space-y-4">
-                  {results.length === 0 ? (
+                  {results.length === 0 && !lastAnalysisHadFeedback ? (
                     <div className={`p-6 rounded-lg text-center ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-50 text-gray-600'}`}>
                       <p className="mb-2">No {includeDefaults ? 'matches' : 'advancement opportunities'} identified.</p>
                       <p className="text-sm opacity-75">{includeDefaults ? 'Try different activities.' : 'Activities appear within expected range. Try enabling "Include defaults" toggle.'}</p>
                     </div>
-                  ) : (
+                  ) : results.length > 0 ? (
                     <>
                       <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>🎯 {results.length} Match{results.length !== 1 ? 'es' : ''}</h2>
                       {results.map((r, i) => {
@@ -3317,64 +3459,77 @@ ${includeDefaults ? '' : 'Return [] if no above-default matches.'} Max 8.` }]
                           </div>
                         );
                       })}
+                      {lastAnalysisHadFeedback && (
+                        <div className={`mt-8 pt-6 border-t ${darkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+                          <div className={`border rounded-lg overflow-hidden ${darkMode ? 'border-indigo-800 bg-indigo-900/20' : 'border-indigo-200 bg-indigo-50/50'}`}>
+                            <button onClick={() => setFutureAdvancementExpanded(!futureAdvancementExpanded)} className={`w-full flex items-center justify-between gap-2 p-4 text-left transition-colors ${darkMode ? 'hover:bg-indigo-900/40' : 'hover:bg-indigo-100'}`}>
+                              <div>
+                                <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>🔮 Future Advancement Opportunities</h2>
+                                <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Click to {futureAdvancementExpanded ? 'collapse' : 'reveal'} {futureAdvancementResults.length > 0 ? `(${futureAdvancementResults.length} result${futureAdvancementResults.length !== 1 ? 's' : ''})` : '(no opportunities identified)'}</p>
+                              </div>
+                              {futureAdvancementExpanded ? <ChevronUp size={24} className={`flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} /> : <ChevronDown size={24} className={`flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />}
+                            </button>
+                            {futureAdvancementExpanded && (
+                              <div className={`border-t p-4 space-y-4 ${darkMode ? 'border-indigo-800 bg-gray-800/50' : 'border-indigo-200 bg-white'}`}>
+                                {futureAdvancementResults.length === 0 ? (
+                                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>No opportunities identified from the feedback.</p>
+                                ) : futureAdvancementResults.map((r, i) => (
+                            <div key={`fa-${i}`} className={`border-2 rounded-lg p-5 mb-4 ${darkMode ? 'border-indigo-700 bg-indigo-900/20' : 'border-indigo-200 bg-indigo-50'}`}>
+                              <div className="flex flex-col md:flex-row md:justify-between gap-3 mb-3">
+                                <div><h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>{r.milestone}</h3><p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{r.category}</p></div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className={`px-3 py-1 rounded-full font-bold text-sm ${darkMode ? 'bg-indigo-600 text-white' : 'bg-indigo-200 text-indigo-800'}`}>Level {r.level}</span>
+                                  {r.sublevels?.length > 0 && (
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${darkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-800'}`}>Sublevels: {r.sublevels.join(', ')}</span>
+                                  )}
+                                  {r.highlight && <Badge type={r.highlight} />}
+                                </div>
+                              </div>
+                              <div className={`my-3 p-3 border-l-4 rounded-r ${darkMode ? 'bg-gray-700 border-gray-500' : 'bg-white border-gray-300'}`}><p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{r.explanation}</p></div>
+                              {r.requirements?.length > 0 && <div className={`p-3 rounded-lg ${darkMode ? 'bg-orange-900/30' : 'bg-orange-50'}`}><p className={`font-semibold text-sm mb-1 ${darkMode ? 'text-orange-300' : 'text-orange-800'}`}>📋 Requirements:</p><ul className={`list-disc list-inside text-sm ${darkMode ? 'text-orange-400' : 'text-orange-700'}`}>{r.requirements.map((req: any, j: number) => <li key={j}>{req}</li>)}</ul></div>}
+                            </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className={`border rounded-lg overflow-hidden ${darkMode ? 'border-indigo-800 bg-indigo-900/20' : 'border-indigo-200 bg-indigo-50/50'}`}>
+                        <button onClick={() => setFutureAdvancementExpanded(!futureAdvancementExpanded)} className={`w-full flex items-center justify-between gap-2 p-4 text-left transition-colors ${darkMode ? 'hover:bg-indigo-900/40' : 'hover:bg-indigo-100'}`}>
+                          <div>
+                            <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>🔮 Future Advancement Opportunities</h2>
+                            <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Click to {futureAdvancementExpanded ? 'collapse' : 'reveal'} {futureAdvancementResults.length > 0 ? `(${futureAdvancementResults.length} result${futureAdvancementResults.length !== 1 ? 's' : ''})` : '(no opportunities identified)'}</p>
+                          </div>
+                          {futureAdvancementExpanded ? <ChevronUp size={24} className={`flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} /> : <ChevronDown size={24} className={`flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />}
+                        </button>
+                        {futureAdvancementExpanded && (
+                          <div className={`border-t p-4 space-y-4 ${darkMode ? 'border-indigo-800 bg-gray-800/50' : 'border-indigo-200 bg-white'}`}>
+                            {futureAdvancementResults.length === 0 ? (
+                              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>No opportunities identified from the feedback.</p>
+                            ) : futureAdvancementResults.map((r, i) => (
+                        <div key={`fa-${i}`} className={`border-2 rounded-lg p-5 mb-4 ${darkMode ? 'border-indigo-700 bg-indigo-900/20' : 'border-indigo-200 bg-indigo-50'}`}>
+                          <div className="flex flex-col md:flex-row md:justify-between gap-3 mb-3">
+                            <div><h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>{r.milestone}</h3><p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{r.category}</p></div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className={`px-3 py-1 rounded-full font-bold text-sm ${darkMode ? 'bg-indigo-600 text-white' : 'bg-indigo-200 text-indigo-800'}`}>Level {r.level}</span>
+                              {r.sublevels?.length > 0 && (
+                                <span className={`px-2 py-1 rounded text-xs font-medium ${darkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-800'}`}>Sublevels: {r.sublevels.join(', ')}</span>
+                              )}
+                              {r.highlight && <Badge type={r.highlight} />}
+                            </div>
+                          </div>
+                          <div className={`my-3 p-3 border-l-4 rounded-r ${darkMode ? 'bg-gray-700 border-gray-500' : 'bg-white border-gray-300'}`}><p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{r.explanation}</p></div>
+                          {r.requirements?.length > 0 && <div className={`p-3 rounded-lg ${darkMode ? 'bg-orange-900/30' : 'bg-orange-50'}`}><p className={`font-semibold text-sm mb-1 ${darkMode ? 'text-orange-300' : 'text-orange-800'}`}>📋 Requirements:</p><ul className={`list-disc list-inside text-sm ${darkMode ? 'text-orange-400' : 'text-orange-700'}`}>{r.requirements.map((req: any, j: number) => <li key={j}>{req}</li>)}</ul></div>}
+                        </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </>
                   )}
-                </div>
-              )}
-            </>
-          )}
-
-          {activeTab === 'ambient' && (
-            <>
-              <div className={`mb-4 p-4 rounded-lg ${darkMode ? 'bg-purple-900/30 border border-purple-800' : 'bg-purple-50 border border-purple-200'}`}>
-                <h3 className={`font-semibold mb-2 ${darkMode ? 'text-purple-300' : 'text-purple-800'}`}>🎙️ Ambient Staffing Listener</h3>
-                <p className={`text-sm mb-2 ${darkMode ? 'text-purple-400' : 'text-purple-700'}`}>Record a patient staffing session. The AI will identify milestone opportunities from the conversation.</p>
-                <div className="flex items-center gap-2 mt-2 flex-wrap"><MicStatusBadge />{micMessage && <span className={`text-xs ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>{micMessage}</span>}</div>
-              </div>
-              
-              <div className="mb-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <button onClick={() => isAmbientListening ? stopListening() : startListening(true)} disabled={micStatus === 'unsupported'} className={`px-6 py-4 rounded-xl font-medium flex items-center gap-3 ${isAmbientListening ? 'bg-red-500 text-white animate-pulse' : 'bg-purple-600 text-white hover:bg-purple-700'} disabled:opacity-50`}>
-                    {isAmbientListening ? <><Square size={24} />Stop Recording</> : <><Radio size={24} />Start Recording</>}
-                  </button>
-                </div>
-                
-                <div className="mb-4">
-                  <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Transcript:</label>
-                  <div className={`w-full p-4 border rounded-lg min-h-32 max-h-64 overflow-y-auto ${isAmbientListening ? (darkMode ? 'border-purple-600 bg-purple-900/20' : 'border-purple-300 bg-purple-50') : (darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-gray-50')}`}>
-                    {ambientTranscript || <span className={darkMode ? 'text-gray-500' : 'text-gray-400'}>{isAmbientListening ? 'Listening...' : 'Transcript appears here...'}</span>}
-                  </div>
-                </div>
-                
-                {ambientTranscript && !isAmbientListening && (
-                  <div className="flex gap-3">
-                    <button onClick={() => analyzeWithAI(ambientTranscript, true)} disabled={isAnalyzing} className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50">
-                      {isAnalyzing ? <><Loader2 size={20} className="animate-spin" />Analyzing...</> : <><Search size={20} />Analyze</>}
-                    </button>
-                    <button onClick={() => setAmbientTranscript('')} className={`px-6 py-3 rounded-lg font-medium ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>Clear</button>
-                  </div>
-                )}
-              </div>
-              
-              {error && <div className={`mb-6 p-4 rounded-lg ${darkMode ? 'bg-red-900/30 text-red-300' : 'bg-red-50 text-red-800'}`}>{error}</div>}
-              
-              {results !== null && activeTab === 'ambient' && results.length > 0 && (
-                <div className="space-y-4">
-                  <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>🎯 {results.length} Match{results.length !== 1 ? 'es' : ''}</h2>
-                  {results.map((r, i) => (
-                    <div key={i} className={`border-2 rounded-lg p-5 ${darkMode ? 'border-green-700 bg-green-900/20' : 'border-green-200 bg-green-50'}`}>
-                      <div className="flex flex-col md:flex-row md:justify-between gap-3 mb-3">
-                        <div><h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>{r.milestone}</h3><p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{r.category}</p></div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="px-3 py-1 bg-green-600 text-white rounded-full font-bold text-sm self-start">Level {r.level}</span>
-                          {r.sublevels?.length > 0 && (
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${darkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-800'}`}>Sublevels: {r.sublevels.join(', ')}</span>
-                          )}
-                        </div>
-                      </div>
-                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{r.explanation}</p>
-                    </div>
-                  ))}
                 </div>
               )}
             </>
