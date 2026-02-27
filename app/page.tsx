@@ -3091,15 +3091,17 @@ const MilestonesApp = () => {
     const fullNamePattern = /\b([A-Z][a-z]+(?:[-'][A-Z][a-z]+)?)\s+([A-Z][a-z]+(?:[-'][A-Z][a-z]+)?)\b/g;
     const titledNamePattern = /\b(?:Mr|Mrs|Ms|Miss|Mx|Dr)\.?\s+([A-Z][a-z]+(?:[-'][A-Z][a-z]+)?)(?:\s+([A-Z][a-z]+(?:[-'][A-Z][a-z]+)?))?/g;
 
-    for (const match of text.matchAll(fullNamePattern)) {
-      const first = match[1];
-      const last = match[2];
+    let fullNameMatch: RegExpExecArray | null = null;
+    while ((fullNameMatch = fullNamePattern.exec(text)) !== null) {
+      const first = fullNameMatch[1];
+      const last = fullNameMatch[2];
       if (!blocked.has(first) && !blocked.has(last)) found.add(`${first} ${last}`);
     }
 
-    for (const match of text.matchAll(titledNamePattern)) {
-      const first = match[1];
-      const last = match[2];
+    let titledNameMatch: RegExpExecArray | null = null;
+    while ((titledNameMatch = titledNamePattern.exec(text)) !== null) {
+      const first = titledNameMatch[1];
+      const last = titledNameMatch[2];
       if (first && !blocked.has(first)) found.add(first);
       if (first && last && !blocked.has(last)) found.add(`${first} ${last}`);
     }
@@ -3415,7 +3417,7 @@ ${responseFormat}` }]
                       Why was this flagged?
                     </summary>
                     <p className={`text-xs mt-2 ${darkMode ? 'text-amber-100' : 'text-amber-900'}`}>
-                      This check looks for name-like proper nouns (for example, first + last names or titled names like "Dr. Smith") to reduce accidental PHI exposure.
+                      This check looks for name-like proper nouns (for example, first + last names or titled names like &quot;Dr. Smith&quot;) to reduce accidental PHI exposure.
                       Review and redact any real patient identifiers before analysis.
                     </p>
                   </details>
